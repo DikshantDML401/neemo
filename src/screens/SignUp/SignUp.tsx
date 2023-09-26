@@ -1,32 +1,87 @@
 import {ScrollView, StyleSheet, Text, View} from 'react-native';
 import React, {useState} from 'react';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import AppHeader from '../../components/AppHeader';
 import TextInputFields from '../../components/atoms/TextInputFields';
 import Fontisto from 'react-native-vector-icons/Fontisto';
 import Feather from 'react-native-vector-icons/Feather';
-import LockEye from '../assets/images/lockEye.png';
+import LockEye from '../../assets/images/lockEye.png';
 import CustomCheckBox from '../../components/atoms/CustomCheckBox';
 import CustomButton from '../../components/atoms/CustomButton';
+import {useDispatch} from 'react-redux';
+import {AppDispatch} from '../../redux/store/store';
+import {userSignUp} from '../../redux/slice/authAction';
+import {removeLocalStorage} from '../../api/asyncStorage/storage';
+import {userSignUpHandleChangeData} from '../../redux/slice/authSlice';
+import {userProfileDataChange} from '../../redux/slice/myProfileSlice/myProfileSlice';
+import {useAppSelector} from '../../redux/reduxHooks/hooks';
 
 export default function SignUp() {
-  const [UserSignUpData, setUserSignUpData] = useState({
-    email: '',
-    password: '',
-    cnf_password: '',
-  });
+  const {userSignUpData, loading} = useAppSelector(
+    state => state.AuthSliceState,
+  );
   const [passwordActiveIcone, setPasswordActiveIcone] =
     useState<string>('eye-with-line');
+  const dispatch = useDispatch<AppDispatch>();
   const [checkBoxValue, setsheckBoxValue] = useState<boolean>(true);
-
-  const handleChangeData = (value: string, key: string) => {
-    setUserSignUpData(prevData => ({
-      ...prevData,
-      [key]: value,
-    }));
+  const [errors, setErrors] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
+  const handleChange = (value: string, key: string) => {
+    dispatch(userSignUpHandleChangeData({key, value}));
   };
   const handleSignUp = () => {
-    console.log(UserSignUpData, 'data');
+    const newErrors = {
+      email: '',
+      password: '',
+      confirmPassword: '',
+    };
+    const validateEmail = (data: string) => {
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      return emailRegex?.test(data);
+    };
+
+    const validatePassword = (data: string) => {
+      const passwordRegex =
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+      return passwordRegex?.test(data);
+    };
+    console.log(userSignUpData, 'data');
+    if (!validateEmail(userSignUpData.email)) {
+      newErrors.email = 'Email is required';
+    }
+
+    if (!validatePassword(userSignUpData.password)) {
+      newErrors.password = 'Password is required';
+    }
+
+    if (!validatePassword(userSignUpData.confirmPassword)) {
+      newErrors.confirmPassword = 'Confirm Password is required';
+    }
+
+    if (userSignUpData.password !== userSignUpData.confirmPassword) {
+      newErrors.confirmPassword = 'Password and Confirm Password must match';
+    } else {
+      dispatch(userSignUp({...userSignUpData}))
+        .then(response => {
+          if (response.payload?.code === 200) {
+            dispatch(
+              userProfileDataChange({
+                key: 'email',
+                value: userSignUpData?.email,
+              }),
+            );
+            removeLocalStorage('logindata');
+          } else {
+            console.log('erororro');
+          }
+        })
+        .catch(error => {
+          setErrors(error?.payload?.message);
+        });
+    }
   };
   return (
     <>
@@ -41,18 +96,19 @@ export default function SignUp() {
         <View style={styles.textFieldContainer}>
           <View style={styles.textField}>
             <TextInputFields
-              value={UserSignUpData.email}
+              value={userSignUpData.email}
               placeholder="Email"
               leftIcone={() => (
                 <Fontisto name="email" size={20} color="#707070" />
               )}
               rightImage={false}
-              handleChange={text => handleChangeData(text, 'email')}
+              handleChange={text => handleChange(text, 'email')}
             />
           </View>
+          {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
           <View style={styles.textField}>
             <TextInputFields
-              value={UserSignUpData.password}
+              value={userSignUpData.password}
               secureTextEntry={passwordActiveIcone !== 'eye'}
               placeholder="Password"
               onIconeChane={() => {
@@ -63,12 +119,15 @@ export default function SignUp() {
               iconeName={passwordActiveIcone}
               leftIcone={() => <Feather name="lock" size={18} color="green" />}
               rightImage={LockEye}
-              handleChange={text => handleChangeData(text, 'password')}
+              handleChange={text => handleChange(text, 'password')}
             />
           </View>
+          {errors.password && (
+            <Text style={styles.errorText}>{errors.password}</Text>
+          )}
           <View style={styles.textField}>
             <TextInputFields
-              value={UserSignUpData.cnf_password}
+              value={userSignUpData.confirmPassword}
               secureTextEntry={passwordActiveIcone !== 'eye'}
               placeholder="Confirm Password"
               onIconeChane={() => {
@@ -79,9 +138,12 @@ export default function SignUp() {
               iconeName={passwordActiveIcone}
               leftIcone={() => <Feather name="lock" size={18} color="green" />}
               rightImage={LockEye}
-              handleChange={text => handleChangeData(text, 'cnf_password')}
+              handleChange={text => handleChange(text, 'confirmPassword')}
             />
           </View>
+          {errors.confirmPassword && (
+            <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+          )}
         </View>
         <View style={styles.checkBoxRowMain}>
           <View style={styles.checkBoxRow}>
@@ -142,5 +204,11 @@ const styles = StyleSheet.create({
   button: {
     marginTop: 40,
     margin: 23,
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 12,
+    marginTop: 5,
+    margin: 24,
   },
 });

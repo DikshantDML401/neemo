@@ -1,5 +1,6 @@
 import {createSlice} from '@reduxjs/toolkit';
 import type {PayloadAction} from '@reduxjs/toolkit';
+import { RootState } from '../store/store';
 
 interface Error {
   message: string;
@@ -11,7 +12,7 @@ interface SignUp {
   email: string;
   password: string;
   confirmPassword: string;
-  token: string;
+  deviceToken: string;
   role: string;
 }
 
@@ -19,6 +20,7 @@ interface AuthSliceState {
   userSignUpData: SignUp;
   isLoggedIn: boolean;
   error: Error | {};
+  apiError: {[x: string]: any} | undefined;
 }
 
 const initialState: AuthSliceState = {
@@ -28,23 +30,39 @@ const initialState: AuthSliceState = {
     email: '',
     password: '',
     confirmPassword: '',
-    token: '',
+    deviceToken: 'dhjjhhhjhkjhdskhhsdkhdsh',
   },
+  apiError: undefined,
   isLoggedIn: false,
   error: {},
 };
 
-const authSlice = createSlice({
-  name: 'AuthSlice',
+const AuthSliceState = createSlice({
+  name: 'AuthSliceState',
   initialState,
   reducers: {
     setAuthentication: (state, action: PayloadAction<SignUp>) => {
       state.userSignUpData = action.payload;
       state.isLoggedIn = true;
     },
+    userSignUpHandleChangeData: (state, {payload}) => {
+      return {
+        ...state,
+        userSignUpData: {
+          ...state.userSignUpData,
+          [payload?.key]: payload?.value,
+        },
+      };
+    },
+    handleApiError: (state, {payload}) => {
+      state.apiError = payload;
+    },
   },
 });
 
-export const {setAuthentication} = authSlice.actions;
+export const {setAuthentication, handleApiError, userSignUpHandleChangeData} =
+  AuthSliceState.actions;
 
-export default authSlice.reducer;
+export const selectCount = (state: RootState) => state.AuthSliceState;
+
+export default AuthSliceState.reducer;
