@@ -1,13 +1,13 @@
 import {ScrollView, StyleSheet, Text, View} from 'react-native';
 import React, {useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import AppHeader from '../components/AppHeader';
-import TextInputFields from '../components/TextInputFields';
+import AppHeader from '../../components/AppHeader';
+import TextInputFields from '../../components/atoms/TextInputFields';
 import Fontisto from 'react-native-vector-icons/Fontisto';
 import Feather from 'react-native-vector-icons/Feather';
 import LockEye from '../assets/images/lockEye.png';
-import CustomCheckBox from '../components/CustomCheckBox';
-import CustomButton from '../components/CustomButton';
+import CustomCheckBox from '../../components/atoms/CustomCheckBox';
+import CustomButton from '../../components/atoms/CustomButton';
 
 export default function SignUp() {
   const [UserSignUpData, setUserSignUpData] = useState({

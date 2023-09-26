@@ -5,6 +5,7 @@ interface Error {
   message: string;
   code: number;
 }
+
 interface SignUp {
   loginType: string;
   email: string;
@@ -15,20 +16,35 @@ interface SignUp {
 }
 
 interface AuthSliceState {
-  [s: string]: any;
-  userSignUpDate: SignUp;
-  isLoggedin: boolean;
+  userSignUpData: SignUp;
+  isLoggedIn: boolean;
   error: Error | {};
 }
 
 const initialState: AuthSliceState = {
-  userSignUpDate: {
+  userSignUpData: {
     loginType: 'EMAIL',
     role: 'U',
     email: '',
     password: '',
     confirmPassword: '',
-    deviceToken: 'aa',
-    error: {},
+    token: '',
   },
+  isLoggedIn: false,
+  error: {},
 };
+
+const authSlice = createSlice({
+  name: 'AuthSlice',
+  initialState,
+  reducers: {
+    setAuthentication: (state, action: PayloadAction<SignUp>) => {
+      state.userSignUpData = action.payload;
+      state.isLoggedIn = true;
+    },
+  },
+});
+
+export const {setAuthentication} = authSlice.actions;
+
+export default authSlice.reducer;
