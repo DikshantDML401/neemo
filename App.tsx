@@ -4,7 +4,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {NavigationContainer} from '@react-navigation/native';
 import Login from './src/components/Login';
 import Home from './src/components/Home';
-import SignUp from './src/SignUp/SignUp';
+import SignUp from './src/screens/SignUp/SignUp';
 
 const Stack = createNativeStackNavigator();
 const App = () => {
